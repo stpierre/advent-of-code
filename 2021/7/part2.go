@@ -45,7 +45,6 @@ func main() {
 	for candidate := minPosition; candidate <= maxPosition; candidate++ {
 		fuel := align(positions, candidate)
 		if fuel < leastFuel {
-			fmt.Println(candidate, ":", fuel)
 			leastFuel = fuel
 			bestPosition = candidate
 		}
