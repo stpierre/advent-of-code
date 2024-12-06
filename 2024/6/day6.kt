@@ -197,16 +197,18 @@ fun part2(labMap: LabMap, guard: Guard): Long {
     return labMap.layout.indices.sumOf { y ->
         labMap.layout[y].indices.sumOf { x ->
             val newObstruction = Point(x, y)
-            debug("Testing map with obstruction at $newObstruction")
-            val newMap = labMap.withObstruction(newObstruction)
-            val newGuard = Guard(guard.location, guard.direction)
-            try {
-                newGuard.walk(newMap)
-                debug("No loop detected with obstruction at $newObstruction")
-                0L
-            } catch (e: LoopException) {
-                debug("Loop detected with obstruction at $newObstruction")
-                1L
+            if (!labMap.isObstructed(newObstruction)) {
+                debug("Testing map with obstruction at $newObstruction")
+                val newMap = labMap.withObstruction(newObstruction)
+                val newGuard = Guard(guard.location, guard.direction)
+                try {
+                    newGuard.walk(newMap)
+                    debug("No loop detected with obstruction at $newObstruction")
+                    0L
+                } catch (e: LoopException) {
+                    debug("Loop detected with obstruction at $newObstruction")
+                    1L
+                }
             }
         }
     }
