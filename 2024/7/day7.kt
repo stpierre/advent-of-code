@@ -29,7 +29,7 @@ fun getValues(vararg inputs: Long, allowConcat: Boolean = false): List<Long> {
         return listOf(inputs[0])
     } else {
         val results = mutableListOf<Long>()
-        getValues(*inputs.slice(1..inputs.size - 1).toLongArray(), allowConcat=allowConcat).forEach {
+        getValues(*inputs.slice(1..inputs.size - 1).toLongArray(), allowConcat = allowConcat).forEach {
             results.add(it * inputs[0])
             results.add(it + inputs[0])
             if (allowConcat) {
@@ -41,24 +41,13 @@ fun getValues(vararg inputs: Long, allowConcat: Boolean = false): List<Long> {
 }
 
 
-fun part1(equations: List<Equation>): Long {
+fun solve(equations: List<Equation>, allowConcat: Boolean = false): Long {
     return equations.filter {
         if (DEBUG) {
-            debug("${it} -> ${getValues(*it.inputs.reversed().toLongArray())}")
+            debug("${it} -> ${getValues(*it.inputs.reversed().toLongArray(), allowConcat = allowConcat)}")
         }
-        getValues(*it.inputs.reversed().toLongArray()).contains(it.total)
-    }.sumOf {
-        it.total
-    }
-}
-
-
-fun part2(equations: List<Equation>): Long {
-    return equations.filter {
-        if (DEBUG) {
-            debug("${it} -> ${getValues(*it.inputs.reversed().toLongArray(), allowConcat=true)}")
-        }
-        getValues(*it.inputs.reversed().toLongArray(), allowConcat=true).contains(it.total)
+        getValues(*it.inputs.reversed().toLongArray(),
+                  allowConcat = allowConcat).contains(it.total)
     }.sumOf {
         it.total
     }
@@ -67,6 +56,6 @@ fun part2(equations: List<Equation>): Long {
 
 fun main(args: Array<String>) {
     val equations = readInput()
-    println("Part 1: ${part1(equations)}")
-    println("Part 2: ${part2(equations)}")
+    println("Part 1: ${solve(equations)}")
+    println("Part 2: ${solve(equations, allowConcat = true)}")
 }
