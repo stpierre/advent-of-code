@@ -171,26 +171,27 @@ class Plot(val plantType: Char, val points: List<Point>, val plants: PlantMap) {
             val start = Point(this.points[0]!!.x, this.points[0]!!.y)
             var cur = start
             var direction = Direction.EAST
-            val boundaries = mutableListOf<Pair<Point, Direction>>(Pair(cur, direction.opposite()))
+            val looked = mutableListOf<Pair<Point, Direction>>(Pair(cur, direction.opposite()))
             debug("Walking exterior sides of $this starting at $cur going $direction")
             this.exteriorSides = 1
             while (true) {
                 val ccw = direction.ccw()
                 val nextCcw = cur + ccw
+                looked.add(Pair(cur, ccw))
                 if (this.plants.canStep(nextCcw, plantType)) {
                     this.exteriorSides++
                     cur = nextCcw
                     direction = ccw
                     debug("${this.plantType}: Turning CCW to $direction, stepping to $cur")
                 } else {
-                    boundaries.add(Pair(cur, ccw))
                     val next = cur + direction
+                    looked.add(Pair(cur, direction))
                     if (this.plants.canStep(next, plantType)) {
                         cur = next
                         debug("${this.plantType}: Continuing $direction, stepping to $cur")
                     } else {
-                        boundaries.add(Pair(cur, direction))
                         val cw = direction.cw()
+                        looked.add(Pair(cur, cw))
                         val nextCw = cur + cw
                         if (this.plants.canStep(nextCw, plantType)) {
                             this.exteriorSides++
@@ -198,8 +199,8 @@ class Plot(val plantType: Char, val points: List<Point>, val plants: PlantMap) {
                             direction = cw
                             debug("${this.plantType}: Turning CW to $direction, stepping to $cur")
                         } else {
-                            boundaries.add(Pair(cur, cw))
                             val opp = direction.opposite()
+                            looked.add(Pair(cur, opp))
                             val nextOpp = cur + opp
                             if (this.plants.canStep(nextOpp, plantType)) {
                                 this.exteriorSides += 2
@@ -207,7 +208,6 @@ class Plot(val plantType: Char, val points: List<Point>, val plants: PlantMap) {
                                 direction = opp
                                 debug("${this.plantType}: Vault face to $direction, stepping to $cur")
                             } else {
-                                boundaries.add(Pair(cur, opp))
                                 this.exteriorSides = 4
                                 debug("${this.plantType}: No steps possible")
                             }
@@ -227,7 +227,7 @@ class Plot(val plantType: Char, val points: List<Point>, val plants: PlantMap) {
                             direction = Direction.SOUTH
                             debug("${this.plantType}: Turning to $direction from anchor, stepping to $cur")
                         } else {
-                            boundaries.add(Pair(cur, Direction.SOUTH))
+                            looked.add(Pair(cur, Direction.SOUTH))
                             debug("${this.plantType}: Found 1-block tall anchor point at $cur")
                             this.exteriorSides++
                             break
@@ -248,7 +248,7 @@ class Plot(val plantType: Char, val points: List<Point>, val plants: PlantMap) {
             this.interiorSides = this.points.sumOf { loc ->
                 debug("${this.plantType}: Checking for enclaves from $loc")
                 Direction.entries.filter {
-                    !boundaries.contains(Pair(loc, it))
+                    !looked.contains(Pair(loc, it))
                 }.map {
                     debug("${this.plantType}: Looking $it from $loc")
                     loc + it
