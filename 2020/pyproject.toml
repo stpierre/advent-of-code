@@ -1,0 +1,37 @@
+[project]
+name = "aoc2023"
+requires-python = ">=3.13,<4.0"
+dependencies = [
+    "aocd (>=0.1,<0.2)",
+    "nx (>=0.0.0,<0.0.1)",
+    "loguru (>=0.7.3,<0.8.0)",
+    "click (>=8.2.1,<9.0.0)",
+    "temporalio (>=1.18.1,<2.0.0)",
+    "browser-cookie3 (>=0.20.1,<0.21.0)"
+]
+
+[tool.poetry]
+package-mode = false
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.12.12"
+mypy = "^1.17.1"
+ptpython = "^3.0.31"
+pytest = "^8.4.2"
+pytest-asyncio = "^1.1.0"
+
+[tool.ruff]
+line-length = 79
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+       "ANN401",  # typing.Any used
+       "COM812",  # missing-trailing-comma
+       "D",  # pydocstyle
+       "S101",  # assert
+]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
