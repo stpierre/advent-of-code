@@ -1,14 +1,27 @@
 import dataclasses
+import datetime
 import enum
 import importlib
+import json
 from typing import Any
 
+import temporalio.common
 from temporalio import activity, workflow
 
 import common
 
 with workflow.unsafe.imports_passed_through():
     import aocd
+
+
+def _get_task_id(obj: Any, **attrs: Any) -> str:
+    return json.dumps(
+        {
+            "cls": obj.__class__.__name__,
+            **{k: getattr(v, "task_id", v) for k, v in attrs.items()},
+        },
+        separators=(",", ":"),
+    )
 
 
 @dataclasses.dataclass(order=True, frozen=True, eq=True)
@@ -22,7 +35,7 @@ class _PartDescriptor:
 
     @property
     def task_id(self) -> str:
-        return self.name.replace(" ", "")
+        return _get_task_id(self, name=self.name)
 
     def __str__(self) -> str:
         return self.name
@@ -47,6 +60,19 @@ def _get_workflow_class(part: _PartDescriptor, day: int) -> type:
         raise
 
 
+_AOC_API_ACTIVITY_TIMEOUT = datetime.timedelta(5)
+_AOC_API_RETRY = temporalio.common.RetryPolicy(maximum_attempts=2)
+
+
+async def execute_aoc_activity(method: callable, *args: Any) -> Any:
+    return workflow.execute_activity_method(
+        method,
+        *args,
+        retry_policy=_AOC_API_RETRY,
+        start_to_close_timeout=_AOC_API_ACTIVITY_TIMEOUT,
+    )
+
+
 @dataclasses.dataclass
 class SolveInput:
     day: int
@@ -55,8 +81,12 @@ class SolveInput:
 
     @property
     def task_id(self) -> str:
-        suffix = "-fast" if self.fast else ""
-        return f"solve-day{self.day}-{self.session_token[0:6]}{suffix}"
+        return _get_task_id(
+            self,
+            day=self.day,
+            fast=self.fast,
+            tok=self.session_token[0:6],
+        )
 
 
 @dataclasses.dataclass
@@ -75,12 +105,7 @@ class _SetAnswerInput:
 class Solve:
     @workflow.run
     async def run(self, data: SolveInput) -> SolveOutput:
-        input_data = await workflow.execute_activity_method(
-            self.fetch_input_data,
-            data,
-            retry_policy=common.AOC_API_RETRY,
-            start_to_close_timeout=common.AOC_API_ACTIVITY_TIMEOUT,
-        )
+        input_data = await execute_aoc_activity(self.fetch_input_data, data)
 
         answers = {}
         for part in Part:
@@ -97,10 +122,9 @@ class Solve:
             )
 
             if answers[part.value] is not None:
-                await workflow.execute_activity_method(
+                await execute_aoc_activity(
                     self.set_answer,
                     _SetAnswerInput(data, part.value, answers[part.value]),
-                    start_to_close_timeout=common.AOC_API_ACTIVITY_TIMEOUT,
                 )
         return SolveOutput(list(answers.items()))
 
@@ -129,7 +153,11 @@ class SolvePartInput:
 
     @property
     def task_id(self) -> str:
-        return f"{self.problem.task_id}-{self.part.task_id}"
+        return _get_task_id(
+            self,
+            prob=self.problem,
+            part=self.part,
+        )
 
 
 @workflow.defn
@@ -165,7 +193,11 @@ class RunExamplesInput:
 
     @property
     def task_id(self) -> str:
-        return f"examples-{self.problem.task_id}-{self.part.task_id}"
+        return _get_task_id(
+            self,
+            prob=self.problem,
+            part=self.part,
+        )
 
 
 @dataclasses.dataclass
@@ -195,12 +227,7 @@ class RunExamples:
         except AttributeError:
             return
 
-        examples = await workflow.execute_activity_method(
-            self.fetch_examples,
-            data,
-            retry_policy=common.AOC_API_RETRY,
-            start_to_close_timeout=common.AOC_API_ACTIVITY_TIMEOUT,
-        )
+        examples = await execute_aoc_activity(self.fetch_examples, data)
         workflows = []
         for i, example in enumerate(examples):
             if example.answer is not None:
