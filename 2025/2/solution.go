@@ -9,6 +9,14 @@ import (
 	"strings"
 )
 
+var DEBUG = false
+
+func Debugf(msg string, subs ...any) {
+	if DEBUG {
+		log.Printf(msg, subs...)
+	}
+}
+
 type Range struct {
 	Start int
 	End   int
@@ -19,7 +27,7 @@ func (r Range) String() string {
 }
 
 func (r Range) FindNRepeats(n int) (repeats []int) {
-	log.Printf("Finding %d-repeats in %s", n, r.String())
+	Debugf("Finding %d-repeats in %s", n, r.String())
 	for i := r.Start; i <= r.End; i++ {
 		val := strconv.Itoa(i)
 		strLen := len(val)
@@ -37,7 +45,7 @@ func (r Range) FindNRepeats(n int) (repeats []int) {
 			}
 
 			if found {
-				log.Printf("  Found %d", i)
+				Debugf("  Found %d", i)
 				repeats = append(repeats, i)
 			}
 		}
@@ -47,7 +55,7 @@ func (r Range) FindNRepeats(n int) (repeats []int) {
 }
 
 func (r Range) FindAllRepeats() (repeats []int) {
-	log.Printf("Finding all repeats in %s", r.String())
+	Debugf("Finding all repeats in %s", r.String())
 
 	unique := map[int]bool{}
 	for n := 2; n <= len(strconv.Itoa(r.End)); n++ {
