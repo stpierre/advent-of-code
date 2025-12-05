@@ -9,9 +9,10 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 )
 
-var DEBUG = true
+var DEBUG = false
 
 func Debugf(msg string, subs ...any) {
 	if DEBUG {
@@ -71,10 +72,18 @@ func main() {
 		banks = append(banks, parseLine(strings.TrimSpace(scanner.Text())))
 	}
 
-	fmt.Println("===== PART 1 =====")
+	Debugf("===== PART 1 =====")
+	start1 := time.Now().UnixMicro()
 	part1Solution := solve(banks, 2)
-	fmt.Println("===== PART 2 =====")
+	duration1 := time.Now().UnixMicro() - start1
+
+	Debugf("===== PART 2 =====")
+	start2 := time.Now().UnixMicro()
 	part2Solution := solve(banks, 12)
+	duration2 := time.Now().UnixMicro() - start2
+
 	fmt.Printf("Part 1: %d\n", part1Solution)
+	fmt.Printf("  in %dμs\n", duration1)
 	fmt.Printf("Part 2: %d\n", part2Solution)
+	fmt.Printf("  in %dμs\n", duration2)
 }
