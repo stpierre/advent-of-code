@@ -67,7 +67,7 @@ func part2(lines []string, operations []rune) (result int64) {
 				if raw := line[idx]; raw != ' ' {
 					val, err := strconv.ParseInt(string(raw), 10, 64)
 					if err != nil {
-						log.Fatalf("Malformed input %s (%s): %v", line, raw, err)
+						log.Fatalf("Malformed input %s (%v): %v", line, raw, err)
 					}
 					Debugf("Column %d number %d digit = %d", col, i, val)
 					numbers[i] = numbers[i]*10 + val
