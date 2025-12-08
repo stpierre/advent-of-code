@@ -185,9 +185,3 @@ func main() {
 	fmt.Printf("Part 2: %d\n", part2Solution)
 	fmt.Printf("  in %dμs\n", duration2)
 }
-
-// 358155203664116
-// 358959143498277 HIGH
-// 359823856532263 HIGH
-// 369404377688525
-// 375979232507066 HIGH
